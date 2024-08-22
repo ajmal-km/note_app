@@ -9,7 +9,6 @@ class NoteCard extends StatelessWidget {
     required this.date,
     this.onEdit,
     this.onDelete,
-    
   });
 
   final String title;
@@ -21,10 +20,11 @@ class NoteCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(12),
+      height: 180,
+      padding: EdgeInsets.all(15),
       decoration: BoxDecoration(
         color: ColorConstants.mainRed,
-        borderRadius: BorderRadius.circular(13),
+        borderRadius: BorderRadius.circular(15),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -33,10 +33,11 @@ class NoteCard extends StatelessWidget {
             children: <Widget>[
               Text(
                 title,
+                overflow: TextOverflow.clip,
                 style: TextStyle(
                   color: ColorConstants.fontColor,
-                  fontSize: 19,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
                   letterSpacing: -0.8,
                 ),
               ),
@@ -59,9 +60,11 @@ class NoteCard extends StatelessWidget {
           SizedBox(height: 16),
           Text(
             description,
+            maxLines: 3,
+            overflow: TextOverflow.clip,
             style: TextStyle(
               color: ColorConstants.fontColor,
-              fontSize: 14,
+              fontSize: 15,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -73,16 +76,18 @@ class NoteCard extends StatelessWidget {
                 date,
                 style: TextStyle(
                   color: ColorConstants.fontColor,
-                  fontSize: 14,
+                  fontSize: 15,
                   fontWeight: FontWeight.w600,
                   letterSpacing: -0.6,
                 ),
               ),
-              SizedBox(width: 15),
-              Icon(
-                Icons.share,
-                color: ColorConstants.fontColor,
-                size: 23,
+              SizedBox(width: 7),
+              IconButton(
+                onPressed: () {},
+                icon: Icon(
+                  Icons.share,
+                  color: ColorConstants.fontColor,
+                ),
               ),
             ],
           )
