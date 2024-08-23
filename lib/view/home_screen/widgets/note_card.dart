@@ -7,6 +7,7 @@ class NoteCard extends StatelessWidget {
     required this.title,
     required this.description,
     required this.date,
+    required this.cardColor,
     this.onEdit,
     this.onDelete,
   });
@@ -14,6 +15,7 @@ class NoteCard extends StatelessWidget {
   final String title;
   final String description;
   final String date;
+  final Color cardColor;
   final void Function()? onEdit;
   final void Function()? onDelete;
 
@@ -23,7 +25,7 @@ class NoteCard extends StatelessWidget {
       height: 180,
       padding: EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: ColorConstants.mainRed,
+        color: cardColor, // card color added through data passing from constructor.
         borderRadius: BorderRadius.circular(15),
       ),
       child: Column(
@@ -57,7 +59,7 @@ class NoteCard extends StatelessWidget {
                   )),
             ],
           ),
-          SizedBox(height: 16),
+          SizedBox(height: 10),
           Text(
             description,
             maxLines: 3,
