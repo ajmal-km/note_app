@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+import 'package:intl/intl.dart';
+import 'package:note_app/utils/app_sessions.dart';
 import 'package:note_app/utils/color_constants.dart';
-import 'package:note_app/view/note_database/note_database.dart';
 import 'package:note_app/view/note_screen/note_screen.dart';
 import 'package:note_app/view/home_screen/widgets/note_card.dart';
+import 'package:share_plus/share_plus.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,25 +20,34 @@ class _HomeScreenState extends State<HomeScreen> {
   TextEditingController dateController = TextEditingController();
   // list of colors to change the color of the note card
   List noteColors = [
-    ColorConstants.mainRed,
-    ColorConstants.skyblue,
-    ColorConstants.mintgreen,
-    ColorConstants.lavender,
-    ColorConstants.lightpink,
+    ColorConstants.blue,
+    ColorConstants.coral,
+    ColorConstants.lightred,
+    ColorConstants.cyanGreen,
+    ColorConstants.darkCream,
   ];
-  // for selecting the color from the above list
+  // Hive
+  var noteBox = Hive.box(AppSessions.noteBox);
+  List noteKeys = [];
   int selectedColorIndex = 0;
+
+  @override
+  void initState() {
+    noteKeys = noteBox.keys.toList();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ColorConstants.mainBlack,
+      backgroundColor: ColorConstants.mainColor,
       appBar: _buildAppBarSection(),
-      body: NoteDatabase.noteList.isEmpty
+      body: noteKeys.isEmpty
           ? Center(
               child: Text(
                 "Add Note",
                 style: TextStyle(
-                  color: ColorConstants.mainRed,
+                  color: ColorConstants.blue,
                   fontSize: 30,
                   fontWeight: FontWeight.w600,
                   letterSpacing: -1,
@@ -44,8 +56,8 @@ class _HomeScreenState extends State<HomeScreen> {
             )
           : _buildNoteListDisplaySection(),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: ColorConstants.mainRed,
-        child: Icon(Icons.add, size: 40, color: ColorConstants.fontColor),
+        backgroundColor: ColorConstants.blue,
+        child: Icon(Icons.add, size: 40, color: ColorConstants.mainColor),
         onPressed: () {
           titleController.clear();
           descriptionController.clear();
@@ -58,75 +70,82 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildNoteListDisplaySection() {
     return ListView.separated(
-            separatorBuilder: (context, index) => SizedBox(height: 15),
-            padding: EdgeInsets.all(14),
-            itemBuilder: (context, index) => InkWell(
-              borderRadius: BorderRadius.circular(15),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => NoteScreen(
-                      noteTitle: NoteDatabase.noteList[index]["title"],
-                      description: NoteDatabase.noteList[index]
-                          ["description"],
-                      date: NoteDatabase.noteList[index]["date"],
-                      appBarColor: noteColors[NoteDatabase.noteList[index]
-                          ["colorIndex"]],
-                      onDelete: () {
-                        setState(() {
-                          NoteDatabase.noteList.removeAt(index);
-                          Navigator.pop(context);
-                        });
-                      },
-                    ),
-                  ),
-                );
-              },
-              child: NoteCard(
-                title: NoteDatabase.noteList[index]["title"],
-                description: NoteDatabase.noteList[index]["description"],
-                date: NoteDatabase.noteList[index]["date"],
-                cardColor:
-                    noteColors[NoteDatabase.noteList[index]["colorIndex"]],
-                onEdit: () {
-                  setState(() {
-                    titleController.text =
-                        NoteDatabase.noteList[index]["title"];
-                    descriptionController.text =
-                        NoteDatabase.noteList[index]["description"];
-                    dateController.text =
-                        NoteDatabase.noteList[index]["date"];
-                    customBottomSheet(context, isEdit: true, index: index);
-                  });
-                },
-                onDelete: () {
-                  setState(() {
-                    NoteDatabase.noteList.removeAt(index);
-                  });
-                },
+      separatorBuilder: (context, index) => SizedBox(height: 15),
+      padding: EdgeInsets.all(14),
+      itemBuilder: (context, index) {
+        final currentNote = noteBox.get(noteKeys[index]);
+        return InkWell(
+          borderRadius: BorderRadius.circular(15),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => NoteScreen(
+                  noteTitle: currentNote["title"],
+                  description: currentNote["description"],
+                  date: currentNote["date"],
+                  appBarColor: noteColors[currentNote["colorIndex"]],
+                  onDelete: () async {
+                    await noteBox.delete(noteKeys[index]);
+                    setState(() {
+                      noteKeys = noteBox.keys.toList();
+                      Navigator.pop(context);
+                    });
+                  },
+                ),
               ),
-            ),
-            itemCount: NoteDatabase.noteList.length,
-          );
+            );
+          },
+          child: NoteCard(
+            title: currentNote["title"],
+            description: currentNote["description"],
+            date: currentNote["date"],
+            cardColor: noteColors[currentNote["colorIndex"]],
+            onEdit: () {
+              titleController.text = currentNote["title"];
+              descriptionController.text = currentNote["description"];
+              dateController.text = currentNote["date"];
+              selectedColorIndex = currentNote["colorIndex"];
+              customBottomSheet(context, isEdit: true, index: index);
+              setState(() {});
+            },
+            onDelete: () async {
+              await noteBox.delete(noteKeys[index]);
+              setState(() {
+                noteKeys = noteBox.keys.toList();
+              });
+            },
+            onShare: () {
+              Share.share(
+                """
+${currentNote["title"]}
+${currentNote["description"]}
+${currentNote["date"]}""",
+              );
+            },
+          ),
+        );
+      },
+      itemCount: noteKeys.length,
+    );
   }
 
   AppBar _buildAppBarSection() {
     return AppBar(
-      backgroundColor: ColorConstants.mainRed,
-      surfaceTintColor: ColorConstants.mainRed,
+      backgroundColor: ColorConstants.blue,
+      surfaceTintColor: ColorConstants.blue,
       leading: IconButton(
         onPressed: () {},
         icon: Icon(
           Icons.home,
-          color: ColorConstants.fontColor,
+          color: ColorConstants.appBarFont,
         ),
       ),
       titleSpacing: 0,
       title: Text(
         "Home",
         style: TextStyle(
-          color: ColorConstants.fontColor,
+          color: ColorConstants.appBarFont,
           fontSize: 25,
           fontWeight: FontWeight.w600,
           letterSpacing: -0.7,
@@ -138,7 +157,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<dynamic> customBottomSheet(BuildContext context,
       {bool isEdit = false, int? index}) {
     return showModalBottomSheet(
-      backgroundColor: ColorConstants.mainBlack,
+      backgroundColor: ColorConstants.mainColor,
       isScrollControlled: true,
       context: context,
       builder: (context) => StatefulBuilder(
@@ -157,7 +176,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Text(
                       isEdit ? "Edit Note" : "Add Note",
                       style: TextStyle(
-                        color: ColorConstants.fontColor,
+                        color: ColorConstants.blue,
                         fontSize: 24,
                         fontWeight: FontWeight.w600,
                         letterSpacing: -0.7,
@@ -169,19 +188,27 @@ class _HomeScreenState extends State<HomeScreen> {
                       FocusManager.instance.primaryFocus?.unfocus();
                     },
                     style: TextStyle(
-                      color: ColorConstants.fontColor,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
+                      color: ColorConstants.blue,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
                     ),
                     controller: titleController,
                     decoration: InputDecoration(
-                      fillColor: ColorConstants.mainRed,
-                      filled: true,
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(23),
+                        borderSide:
+                            BorderSide(width: 2, color: ColorConstants.blue),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(23),
+                        borderSide:
+                            BorderSide(width: 2, color: ColorConstants.blue),
+                      ),
                       hintText: "Title",
                       hintStyle: TextStyle(
-                        color: ColorConstants.fontColor,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
+                        color: ColorConstants.blue,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
                       ),
                       border: OutlineInputBorder(
                         borderSide: BorderSide(
@@ -198,20 +225,28 @@ class _HomeScreenState extends State<HomeScreen> {
                       FocusManager.instance.primaryFocus?.unfocus();
                     },
                     style: TextStyle(
-                      color: ColorConstants.fontColor,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
+                      color: ColorConstants.blue,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
                     ),
                     maxLines: 7,
                     controller: descriptionController,
                     decoration: InputDecoration(
-                      fillColor: ColorConstants.mainRed,
-                      filled: true,
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(23),
+                        borderSide:
+                            BorderSide(width: 2, color: ColorConstants.blue),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(23),
+                        borderSide:
+                            BorderSide(width: 2, color: ColorConstants.blue),
+                      ),
                       hintText: "Description",
                       hintStyle: TextStyle(
-                        color: ColorConstants.fontColor,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
+                        color: ColorConstants.blue,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
                       ),
                       border: OutlineInputBorder(
                         borderSide: BorderSide(
@@ -224,30 +259,47 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   SizedBox(height: 15),
                   TextField(
+                    readOnly: true,
+                    style: TextStyle(
+                      color: ColorConstants.blue,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
+                    ),
                     onTapOutside: (event) {
                       FocusManager.instance.primaryFocus?.unfocus();
                     },
-                    style: TextStyle(
-                      color: ColorConstants.fontColor,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                    ),
                     controller: dateController,
                     decoration: InputDecoration(
-                      fillColor: ColorConstants.mainRed,
-                      filled: true,
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(23),
+                        borderSide:
+                            BorderSide(width: 2, color: ColorConstants.blue),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(23),
+                        borderSide:
+                            BorderSide(width: 2, color: ColorConstants.blue),
+                      ),
                       suffixIcon: IconButton(
-                        onPressed: () {},
+                        onPressed: () async {
+                          var selectedDate = await showDatePicker(
+                            context: context,
+                            firstDate: DateTime(2020),
+                            lastDate: DateTime.now(),
+                          );
+                          dateController.text =
+                              DateFormat('MMMEd').format(selectedDate!);
+                        },
                         icon: Icon(
                           Icons.calendar_month_rounded,
-                          color: ColorConstants.fontColor,
+                          color: ColorConstants.blue,
                         ),
                       ),
                       hintText: "Date",
                       hintStyle: TextStyle(
-                        color: ColorConstants.fontColor,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
+                        color: ColorConstants.blue,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
                       ),
                       border: OutlineInputBorder(
                         borderSide: BorderSide(
@@ -277,15 +329,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                 borderRadius: BorderRadius.circular(12),
                                 border: selectedColorIndex == index
                                     ? Border.all(
-                                        width: 2,
-                                        color: ColorConstants.fontColor)
+                                        width: 4,
+                                        color: ColorConstants.fontColor,
+                                      )
                                     : null,
                                 color: noteColors[index],
                               ),
                               child: selectedColorIndex == index
                                   ? Icon(
                                       Icons.check,
-                                      size: 30,
+                                      size: 40,
                                       color: ColorConstants.fontColor,
                                     )
                                   : null,
@@ -302,6 +355,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       InkWell(
                         borderRadius: BorderRadius.circular(13),
                         onTap: () {
+                          selectedColorIndex = 0;
                           Navigator.pop(context);
                         },
                         child: Container(
@@ -309,13 +363,13 @@ class _HomeScreenState extends State<HomeScreen> {
                           height: 40,
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
-                            color: ColorConstants.mainRed,
+                            color: ColorConstants.blue,
                             borderRadius: BorderRadius.circular(13),
                           ),
                           child: Text(
                             "Cancel",
                             style: TextStyle(
-                              color: ColorConstants.fontColor,
+                              color: ColorConstants.appBarFont,
                               fontSize: 17,
                               fontWeight: FontWeight.w600,
                               letterSpacing: -0.6,
@@ -325,39 +379,42 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       InkWell(
                         borderRadius: BorderRadius.circular(13),
-                        onTap: () {
-                          setState(() {
-                            if (isEdit) {
-                              NoteDatabase.noteList[index!] = {
-                                "title": titleController.text,
-                                "description": descriptionController.text,
-                                "date": dateController.text,
-                                "colorIndex": selectedColorIndex,
-                              };
-                              Navigator.pop(context);
-                            } else {
-                              NoteDatabase.noteList.add({
-                                "title": titleController.text,
-                                "description": descriptionController.text,
-                                "date": dateController.text,
-                                "colorIndex": selectedColorIndex,
-                              });
-                              Navigator.pop(context);
-                            }
-                          });
+                        onTap: () async {
+                          if (isEdit) {
+                            // updating data
+                            noteBox.put(noteKeys[index!], {
+                              "title": titleController.text,
+                              "description": descriptionController.text,
+                              "date": dateController.text,
+                              "colorIndex": selectedColorIndex,
+                            });
+                            Navigator.pop(context);
+                          } else {
+                            // adding data to hive box
+                            await noteBox.add({
+                              "title": titleController.text,
+                              "description": descriptionController.text,
+                              "date": dateController.text,
+                              "colorIndex": selectedColorIndex,
+                            });
+                            noteKeys = noteBox.keys.toList();
+                            selectedColorIndex = 0;
+                            Navigator.pop(context);
+                          }
+                          setState(() {});
                         },
                         child: Container(
                           width: 170,
                           height: 40,
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
-                            color: ColorConstants.mainRed,
+                            color: ColorConstants.blue,
                             borderRadius: BorderRadius.circular(13),
                           ),
                           child: Text(
                             isEdit ? "Update" : "Save",
                             style: TextStyle(
-                              color: ColorConstants.fontColor,
+                              color: ColorConstants.appBarFont,
                               fontSize: 17,
                               fontWeight: FontWeight.w600,
                               letterSpacing: -0.6,

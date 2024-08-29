@@ -35,7 +35,7 @@ class _NoteScreenState extends State<NoteScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ColorConstants.mainBlack,
+      backgroundColor: ColorConstants.mainColor,
       appBar: _buildAppBarSection(context),
       body: _buildNoteDetailedViewSection(),
     );
@@ -51,7 +51,7 @@ class _NoteScreenState extends State<NoteScreen> {
             onTapOutside: (event) {
               FocusManager.instance.primaryFocus?.unfocus();
             },
-            cursorColor: ColorConstants.mainRed,
+            cursorColor: ColorConstants.blue,
             cursorWidth: 3,
             style: TextStyle(
               color: ColorConstants.fontColor,
@@ -125,12 +125,11 @@ class _NoteScreenState extends State<NoteScreen> {
                     fontWeight: FontWeight.w500,
                     letterSpacing: -0.2,
                   ),
-                  cursorColor: ColorConstants.mainRed,
+                  cursorColor: ColorConstants.blue,
                   cursorWidth: 3,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(width: 0, style: BorderStyle.none),
+                      borderSide: BorderSide(width: 0, style: BorderStyle.none),
                     ),
                   ),
                 ),
@@ -149,13 +148,13 @@ class _NoteScreenState extends State<NoteScreen> {
         onPressed: () {
           Navigator.pop(context);
         },
-        color: ColorConstants.fontColor,
+        color: ColorConstants.appBarFont,
         icon: Icon(Icons.arrow_back_ios),
       ),
       actions: <Widget>[
         IconButton(
           onPressed: () {},
-          color: ColorConstants.fontColor,
+          color: ColorConstants.appBarFont,
           icon: Icon(
             isMarked ? Icons.bookmark : Icons.bookmark_border,
           ),
@@ -164,7 +163,7 @@ class _NoteScreenState extends State<NoteScreen> {
           onPressed: widget.onDelete,
           icon: Icon(
             Icons.delete,
-            color: ColorConstants.fontColor,
+            color: ColorConstants.appBarFont,
           ),
         ),
         SizedBox(width: 6),

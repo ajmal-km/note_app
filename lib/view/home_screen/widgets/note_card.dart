@@ -10,6 +10,7 @@ class NoteCard extends StatelessWidget {
     required this.cardColor,
     this.onEdit,
     this.onDelete,
+    this.onShare,
   });
 
   final String title;
@@ -18,6 +19,7 @@ class NoteCard extends StatelessWidget {
   final Color cardColor;
   final void Function()? onEdit;
   final void Function()? onDelete;
+  final void Function()? onShare;
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +27,8 @@ class NoteCard extends StatelessWidget {
       height: 180,
       padding: EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: cardColor, // card color added through data passing from constructor.
+        color:
+            cardColor, // card color added through data passing from constructor.
         borderRadius: BorderRadius.circular(15),
       ),
       child: Column(
@@ -37,7 +40,7 @@ class NoteCard extends StatelessWidget {
                 title,
                 overflow: TextOverflow.clip,
                 style: TextStyle(
-                  color: ColorConstants.fontColor,
+                  color: ColorConstants.appBarFont,
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                   letterSpacing: -0.8,
@@ -48,14 +51,14 @@ class NoteCard extends StatelessWidget {
                 onPressed: onEdit,
                 icon: Icon(
                   Icons.edit,
-                  color: ColorConstants.fontColor,
+                  color: ColorConstants.appBarFont,
                 ),
               ),
               IconButton(
                   onPressed: onDelete,
                   icon: Icon(
                     Icons.delete,
-                    color: ColorConstants.fontColor,
+                    color: ColorConstants.appBarFont,
                   )),
             ],
           ),
@@ -65,7 +68,7 @@ class NoteCard extends StatelessWidget {
             maxLines: 3,
             overflow: TextOverflow.clip,
             style: TextStyle(
-              color: ColorConstants.fontColor,
+              color: ColorConstants.appBarFont,
               fontSize: 15,
               fontWeight: FontWeight.w500,
             ),
@@ -77,7 +80,7 @@ class NoteCard extends StatelessWidget {
               Text(
                 date,
                 style: TextStyle(
-                  color: ColorConstants.fontColor,
+                  color: ColorConstants.appBarFont,
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
                   letterSpacing: -0.6,
@@ -85,10 +88,10 @@ class NoteCard extends StatelessWidget {
               ),
               SizedBox(width: 7),
               IconButton(
-                onPressed: () {},
+                onPressed: onShare,
                 icon: Icon(
                   Icons.share,
-                  color: ColorConstants.fontColor,
+                  color: ColorConstants.appBarFont,
                 ),
               ),
             ],
