@@ -17,9 +17,9 @@ class NoteCard extends StatelessWidget {
   final String description;
   final String date;
   final Color cardColor;
-  final void Function()? onEdit;
-  final void Function()? onDelete;
-  final void Function()? onShare;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
+  final VoidCallback? onShare;
 
   @override
   Widget build(BuildContext context) {

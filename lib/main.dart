@@ -1,15 +1,22 @@
-// ignore_for_file: unused_local_variable
-
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:note_app/utils/app_sessions.dart';
-import 'package:note_app/view/home_screen/home_screen.dart';
+import 'package:provider/provider.dart';
+import 'view/splash_screen/splash_screen.dart';
+import 'controller/splash_controller.dart';
+import 'controller/home_controller.dart';
+import 'app/init_depenencies.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Hive.initFlutter();
-  var noteBox = await Hive.openBox(AppSessions.noteBox);
-  runApp(const MyApp());
+  await initDependencies();
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => SplashController()),
+        ChangeNotifierProvider(create: (context) => HomeController()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -19,7 +26,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: HomeScreen(),
+      home: SplashScreen(),
     );
   }
 }
